@@ -1,6 +1,9 @@
 services:
   api:
     image: payment-microservice:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "3667:3667"
     environment:
