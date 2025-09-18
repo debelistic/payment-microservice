@@ -70,7 +70,7 @@ src/
    npm start
    ```
 
-   The server will start on `http://localhost:3000`
+   The server will start on `http://localhost:3667`
 
 ### Development
 
@@ -99,11 +99,11 @@ npm run test:coverage
 
 ### Base URL
 ```
-http://localhost:3000/api/v1
+http://localhost:3667/api/v1
 ```
 
 ### Interactive Documentation
-Visit `http://localhost:3000/api-docs` for the interactive Swagger UI documentation.
+Visit `http://localhost:3667/api-docs` for the interactive Swagger UI documentation.
 
 ### Health Check
 ```
@@ -294,11 +294,11 @@ The service provides comprehensive error handling with standardized error respon
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PORT` | 3000 | Server port |
+| `PORT` | 3667 | Server port |
 | `HOST` | 0.0.0.0 | Server host |
 | `NODE_ENV` | development | Environment |
 | `LOG_LEVEL` | info | Logging level |
-| `API_BASE_URL` | http://localhost:3000 | Base URL for API docs |
+| `API_BASE_URL` | http://localhost:3667 | Base URL for API docs |
 | `CORS_ORIGIN` | * | CORS origin |
 
 ### Logging

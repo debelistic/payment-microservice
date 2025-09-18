@@ -1,7 +1,7 @@
 import { app } from './app';
 import { logger } from './utils/logger';
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
+const PORT = parseInt(process.env.PORT || '3667', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 
 // Graceful shutdown handling

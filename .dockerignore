@@ -2,4 +2,11 @@ node_modules
 test
 .git
 dist
-npm-debug.log 
+npm-debug.log
+src/__tests__
+coverage
+logs
+data
+*.md
+.env*
+.DS_Store 

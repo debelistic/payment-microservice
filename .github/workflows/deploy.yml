@@ -63,10 +63,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '18'
       - name: SSH to server and deploy
         uses: appleboy/ssh-action@v1.0.3
         with:

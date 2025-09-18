@@ -8,6 +8,8 @@ services:
     environment:
       - PORT=3667
       - NODE_ENV=production
+    volumes:
+      - payment-data:/app/data
     deploy:
       replicas: 2
       update_config:
@@ -34,6 +36,9 @@ services:
       start_period: 40s
     networks:
       - app-network
+
+volumes:
+  payment-data:
 
 networks:
   app-network:

@@ -3,7 +3,7 @@
 // Demo script to test the Payment Microservice API
 const axios = require('axios');
 
-const BASE_URL = 'http://localhost:3000/api/v1';
+const BASE_URL = 'http://localhost:3667/api/v1';
 
 async function runDemo() {
   console.log('🚀 Payment Microservice Demo');
@@ -12,7 +12,7 @@ async function runDemo() {
   try {
     // 1. Health Check
     console.log('1. Health Check...');
-    const health = await axios.get('http://localhost:3000/health');
+    const health = await axios.get('http://localhost:3667/health');
     console.log('✅ Health:', health.data.status);
     console.log();
 
@@ -110,7 +110,7 @@ async function runDemo() {
     console.log();
 
     console.log('🎉 Demo completed successfully!');
-    console.log('\n📖 API Documentation available at: http://localhost:3000/api-docs');
+    console.log('\n📖 API Documentation available at: http://localhost:3667/api-docs');
 
   } catch (error) {
     console.error('❌ Demo failed:', error.response?.data || error.message);
@@ -121,7 +121,7 @@ async function runDemo() {
 // Check if server is running
 async function checkServer() {
   try {
-    await axios.get('http://localhost:3000/health');
+    await axios.get('http://localhost:3667/health');
     return true;
   } catch (error) {
     return false;

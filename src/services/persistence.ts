@@ -123,6 +123,11 @@ export class PaymentPersistenceService {
   private async loadFromFile(): Promise<void> {
     try {
       const filePath = path.resolve(this.config.dataFile);
+      
+      // ensure directory exists before trying to read file
+      const directory = path.dirname(filePath);
+      await fs.mkdir(directory, { recursive: true });
+      
       const data = await fs.readFile(filePath, 'utf-8');
       const paymentsData = JSON.parse(data) as Payment[];
 
@@ -139,7 +144,10 @@ export class PaymentPersistenceService {
       });
     } catch (error) {
       // file doesn't exist or is invalid, start with empty data
-      console.warn('Could not load payments from file, starting with empty data:', error);
+      // only log as warning in development, silent in production
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Could not load payments from file, starting with empty data:', error);
+      }
     }
   }
 
