@@ -407,8 +407,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For support and questions:
 - Create an issue in the repository
-- Contact: developer@example.com
-
 ---
 
 **Built with ❤️ using Node.js, Express, and TypeScript**
