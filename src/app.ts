@@ -20,12 +20,6 @@ const persistenceService = new PaymentPersistenceService({
 
 const paymentService = new PaymentService(persistenceService);
 
-// Initialize persistence
-persistenceService.initialize().catch(error => {
-  logger.error('Failed to initialize persistence service:', error);
-  process.exit(1);
-});
-
 // Middleware
 app.use(helmet());
 app.use(cors({

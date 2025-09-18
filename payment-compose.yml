@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   api:
-    image: ghcr.io/debelistic/payment-microservice:ed492c063812810da307ae81ed3890699e1fc667
+    image: payment-microservice:latest
     ports:
       - "3667:3667"
     environment:
@@ -11,7 +9,7 @@ services:
     volumes:
       - payment-data:/app/data
     deploy:
-      replicas: 2
+      replicas: 1
       update_config:
         parallelism: 1
         delay: 10s
@@ -34,11 +32,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    networks:
-      - app-network
 
 volumes:
   payment-data:
 
-networks:
-  app-network:

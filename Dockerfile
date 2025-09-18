@@ -15,4 +15,4 @@ RUN chown -R node:node /app/data /app/logs
 USER node
 EXPOSE 3667
 ENV NODE_ENV=production
-CMD ["npm", "start"] 
+CMD ["npm", "start"]

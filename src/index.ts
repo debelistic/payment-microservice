@@ -1,4 +1,4 @@
-import { app } from './app';
+import { app, persistenceService } from './app';
 import { logger } from './utils/logger';
 
 const PORT = parseInt(process.env.PORT || '3667', 10);
@@ -27,21 +27,31 @@ process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) =>
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Start server
-const server = app.listen(PORT, HOST, () => {
-  logger.info(`Payment Microservice started on ${HOST}:${PORT}`);
-  logger.info(`API Documentation available at http://${HOST}:${PORT}/api-docs`);
-  logger.info(`Health check available at http://${HOST}:${PORT}/health`);
-});
+// Initialize persistence and start server
+const startServer = async (): Promise<void> => {
+  try {
+    await persistenceService.initialize();
+    logger.info('Persistence service initialized successfully');
+    
+    const server = app.listen(PORT, HOST, () => {
+      logger.info(`Payment Microservice started on ${HOST}:${PORT}`);
+      logger.info(`API Documentation available at http://${HOST}:${PORT}/api-docs`);
+      logger.info(`Health check available at http://${HOST}:${PORT}/health`);
+    });
 
-// Handle server errors
-server.on('error', (error: NodeJS.ErrnoException) => {
-  if (error.code === 'EADDRINUSE') {
-    logger.error(`Port ${PORT} is already in use`);
-  } else {
-    logger.error('Server error:', error);
+    // Handle server errors
+    server.on('error', (error: NodeJS.ErrnoException) => {
+      if (error.code === 'EADDRINUSE') {
+        logger.error(`Port ${PORT} is already in use`);
+      } else {
+        logger.error('Server error:', error);
+      }
+      process.exit(1);
+    });
+  } catch (error) {
+    logger.error('Failed to initialize persistence service:', error);
+    process.exit(1);
   }
-  process.exit(1);
-});
+};
 
-export default server;
+startServer();
