@@ -2,6 +2,17 @@
 
 A robust Node.js microservice for payment processing simulation built with Express.js, TypeScript, and comprehensive testing. This service demonstrates modern microservice architecture patterns including error handling, validation, logging, and asynchronous processing.
 
+## Hostiing and URL
+
+- URL: https://payment-api.matrixlogger.com[https://payment-api.matrixlogger.com]
+
+## Swagger URL
+- URL: https://payment-api.matrixlogger.com/api-docs[https://payment-api.matrixlogger.com/api-docs]
+
+
+## Health Check URL
+- URL: https://payment-api.matrixlogger.com/health[https://payment-api.matrixlogger.com/health]
+
 ## Features
 
 - 🚀 **RESTful API** with Express.js and TypeScript
