@@ -61,8 +61,6 @@ jobs:
     needs: docker-build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
       - name: SSH to server and deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
