@@ -1,21 +1,33 @@
 import { PaymentService } from '../../services/paymentService';
 import { PaymentPersistenceService } from '../../services/persistence';
-import { PaymentRequest, PaymentStatus, PaymentMethod } from '../../types';
+import { createEventBus } from '../../services/eventBus';
+import { PaymentRequest, PaymentStatus, PaymentMethod, IEventBus } from '../../types';
 
 describe('PaymentService', () => {
   let paymentService: PaymentService;
   let persistenceService: PaymentPersistenceService;
+  let eventBus: IEventBus;
 
   beforeEach(() => {
     persistenceService = new PaymentPersistenceService({
       dataFile: './test-data/payments.json',
       enableFilePersistence: false // Use in-memory for tests
     });
-    paymentService = new PaymentService(persistenceService);
+    
+    eventBus = createEventBus({
+      enableHistory: true,
+      maxHistorySize: 100,
+      enableLogging: false, // Disable logging in tests
+      retryAttempts: 1,
+      retryDelayMs: 0
+    });
+    
+    paymentService = new PaymentService(persistenceService, eventBus);
   });
 
   afterEach(async () => {
     await persistenceService.clearAll();
+    eventBus.clearHistory();
   });
 
   describe('createPayment', () => {
@@ -44,6 +56,15 @@ describe('PaymentService', () => {
       expect(payment.metadata).toEqual(validPaymentRequest.metadata);
       expect(payment.createdAt).toBeInstanceOf(Date);
       expect(payment.updatedAt).toBeInstanceOf(Date);
+    });
+
+    it('should emit payment created event', async () => {
+      const payment = await paymentService.createPayment(validPaymentRequest);
+      
+      const emittedEvents = eventBus.getEmittedEvents();
+      expect(emittedEvents).toHaveLength(1);
+      expect(emittedEvents[0]?.eventType).toBe('payment.created');
+      expect(emittedEvents[0]?.paymentId).toBe(payment.id);
     });
 
     it('should reject payment with invalid amount', async () => {
@@ -152,6 +173,30 @@ describe('PaymentService', () => {
       expect(updatedPayment.updatedAt.getTime()).toBeGreaterThan(
         createdPayment.updatedAt.getTime()
       );
+    });
+
+    it('should emit payment status change events', async () => {
+      eventBus.clearHistory(); // Clear any events from creation
+      
+      const createdPayment = await paymentService.createPayment({
+        amount: 75.50,
+        currency: 'GBP',
+        paymentMethod: PaymentMethod.BANK_TRANSFER,
+        customerId: '123e4567-e89b-12d3-a456-426614174000',
+        merchantId: '987fcdeb-51a2-43d1-b789-123456789abc'
+      });
+      
+      eventBus.clearHistory(); // Clear creation event, focus on update events
+      
+      await paymentService.updatePayment(
+        createdPayment.id,
+        { status: PaymentStatus.COMPLETED }
+      );
+
+      const emittedEvents = eventBus.getEmittedEvents();
+      expect(emittedEvents).toHaveLength(1);
+      expect(emittedEvents[0]?.eventType).toBe('payment.completed');
+      expect(emittedEvents[0]?.paymentId).toBe(createdPayment.id);
     });
 
     it('should reject invalid status transition', async () => {

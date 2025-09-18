@@ -25,6 +25,122 @@ A robust Node.js microservice for payment processing simulation built with Expre
 - 📖 **API Documentation** with Swagger/OpenAPI
 - 🛡️ **Security Middleware** with Helmet and CORS
 - 🔄 **Graceful Shutdown** handling
+- 📡 **Event-Driven Architecture** with mock event bus for service communication
+
+## Event Bus System
+
+The payment microservice includes a comprehensive event-driven architecture that emits events for all payment lifecycle changes. This enables loose coupling between services and supports real-time notifications, analytics, and integrations.
+
+### Event Types
+
+The system emits the following payment events:
+
+- `payment.created` - When a new payment is created
+- `payment.updated` - When payment data is updated
+- `payment.processing` - When payment processing begins
+- `payment.completed` - When a payment is successfully completed
+- `payment.failed` - When a payment fails
+- `payment.cancelled` - When a payment is cancelled
+- `payment.refunded` - When a payment is refunded
+- `payment.deleted` - When a payment is deleted
+
+### Event Structure
+
+Each event follows a consistent structure:
+
+```typescript
+interface BasePaymentEvent {
+  eventId: string;           // Unique event identifier
+  eventType: PaymentEventType; // Type of event
+  timestamp: Date;           // When the event occurred
+  paymentId: string;         // ID of the related payment
+  version: string;           // Event schema version
+  source: string;            // Source service identifier
+  data: {                    // Event-specific payload
+    // ... event-specific data
+  };
+}
+```
+
+### Mock Event Bus
+
+The service includes a mock event bus that simulates real message broker functionality:
+
+- **Event Publishing**: Automatically emits events for payment lifecycle changes
+- **Event Subscription**: Supports multiple subscribers per event type
+- **Error Handling**: Gracefully handles subscriber errors with retry logic
+- **Event History**: Maintains configurable event history for debugging
+- **External Service Simulation**: Includes sample handlers for analytics, notifications, accounting, fraud detection, and monitoring services
+
+### Simulated External Services
+
+The mock event bus includes handlers that simulate how external services would consume payment events:
+
+- **Analytics Service**: Tracks payment metrics and statistics
+- **Notification Service**: Sends notifications to customers and merchants
+- **Accounting Service**: Updates financial records and reconciliation
+- **Fraud Detection Service**: Analyzes payments for potential fraud
+- **Monitoring Service**: Tracks system health and performance metrics
+
+### Event Bus Configuration
+
+```typescript
+const eventBus = getEventBus({
+  enableHistory: true,        // Track event history
+  maxHistorySize: 1000,      // Maximum events to keep
+  enableLogging: true,        // Log event processing
+  retryAttempts: 3,          // Retry failed handlers
+  retryDelayMs: 1000         // Delay between retries
+});
+```
+
+### Usage Example
+
+```typescript
+// Subscribe to payment completion events
+const subscriptionId = eventBus.subscribe(
+  PaymentEventType.PAYMENT_COMPLETED,
+  async (event) => {
+    console.log(`Payment ${event.paymentId} completed!`);
+    // Process the event (send notification, update analytics, etc.)
+  }
+);
+
+// Create a payment (automatically emits payment.created event)
+const payment = await paymentService.createPayment(paymentRequest);
+
+// Update payment status (automatically emits payment.completed event)
+await paymentService.updatePayment(payment.id, { status: 'completed' });
+
+// Unsubscribe when done
+eventBus.unsubscribe(PaymentEventType.PAYMENT_COMPLETED, subscriptionId);
+```
+
+### Real-World Integration
+
+In a production environment, the mock event bus can be replaced with real message brokers:
+
+- **Apache Kafka** - High-throughput distributed streaming
+- **RabbitMQ** - Reliable message queuing
+- **AWS SQS/SNS** - Cloud-native messaging
+- **Google Pub/Sub** - Scalable messaging service
+- **Azure Service Bus** - Enterprise messaging
+
+### Demo Script
+
+Run the event bus demonstration:
+
+```bash
+npm run build
+node dist/demo/eventBusDemo.js
+```
+
+This script shows:
+- Event emission during payment lifecycle
+- Multiple event handlers processing events
+- Event history tracking
+- Custom event subscriptions
+- Error handling in event processing
 
 ## Architecture
 

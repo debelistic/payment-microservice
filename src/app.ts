@@ -5,6 +5,8 @@ import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import { PaymentService } from './services/paymentService';
 import { PaymentPersistenceService } from './services/persistence';
+import { getEventBus } from './services/eventBus';
+import { registerDemoEventHandlers } from './services/eventHandlers';
 import { createPaymentRoutes } from './routes/paymentRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
@@ -18,7 +20,21 @@ const persistenceService = new PaymentPersistenceService({
   enableFilePersistence: process.env.NODE_ENV !== 'test'
 });
 
-const paymentService = new PaymentService(persistenceService);
+// Initialize event bus with configuration
+const eventBus = getEventBus({
+  enableHistory: true,
+  maxHistorySize: 1000,
+  enableLogging: process.env.NODE_ENV !== 'test',
+  retryAttempts: 3,
+  retryDelayMs: 1000
+});
+
+const paymentService = new PaymentService(persistenceService, eventBus);
+
+// Register demo event handlers to simulate external services
+if (process.env.NODE_ENV !== 'test') {
+  registerDemoEventHandlers(eventBus);
+}
 
 // Middleware
 app.use(helmet());
@@ -57,4 +73,4 @@ app.use('/api/v1/payments', createPaymentRoutes(paymentService));
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-export { app, paymentService, persistenceService };
+export { app, paymentService, persistenceService, eventBus };

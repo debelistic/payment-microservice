@@ -2,21 +2,31 @@ import request from 'supertest';
 import express from 'express';
 import { PaymentService } from '../../services/paymentService';
 import { PaymentPersistenceService } from '../../services/persistence';
+import { createEventBus } from '../../services/eventBus';
 import { createPaymentRoutes } from '../../routes/paymentRoutes';
 import { errorHandler } from '../../middleware/errorHandler';
-import { PaymentMethod } from '../../types';
+import { PaymentMethod, IEventBus } from '../../types';
 
 describe('Payment Routes', () => {
   let app: express.Application;
   let paymentService: PaymentService;
   let persistenceService: PaymentPersistenceService;
+  let eventBus: IEventBus;
 
   beforeEach(() => {
     persistenceService = new PaymentPersistenceService({
       dataFile: './test-data/payments.json',
       enableFilePersistence: false
     });
-    paymentService = new PaymentService(persistenceService);
+    
+    eventBus = createEventBus({
+      enableHistory: false,
+      enableLogging: false,
+      retryAttempts: 1,
+      retryDelayMs: 0
+    });
+    
+    paymentService = new PaymentService(persistenceService, eventBus);
     
     app = express();
     app.use(express.json());

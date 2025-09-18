@@ -11,15 +11,19 @@ import {
   InvalidPaymentStatusError,
   PaymentProcessingError,
   InsufficientFundsError,
-  DuplicatePaymentError
+  DuplicatePaymentError,
+  IEventBus
 } from '../types';
 import { PaymentPersistenceService } from './persistence';
+import { PaymentEventFactory } from '../utils/eventFactory';
 
 export class PaymentService {
   private persistence: PaymentPersistenceService;
+  private eventBus: IEventBus;
 
-  constructor(persistence: PaymentPersistenceService) {
+  constructor(persistence: PaymentPersistenceService, eventBus: IEventBus) {
     this.persistence = persistence;
+    this.eventBus = eventBus;
   }
 
   async createPayment(request: PaymentRequest): Promise<Payment> {
@@ -51,6 +55,14 @@ export class PaymentService {
     };
 
     const createdPayment = await this.persistence.create(payment);
+
+    // Emit payment created event
+    try {
+      const createdEvent = PaymentEventFactory.createPaymentCreatedEvent(createdPayment);
+      await this.eventBus.emit(createdEvent);
+    } catch (error) {
+      console.error(`Failed to emit payment created event for ${createdPayment.id}:`, error);
+    }
 
     // only start async processing in non-test environments
     if (process.env.NODE_ENV !== 'test') {
@@ -94,6 +106,20 @@ export class PaymentService {
     const updatedPayment = await this.persistence.update(id, updateData);
     if (!updatedPayment) {
       throw new PaymentNotFoundError(id);
+    }
+
+    // Emit payment status change event
+    try {
+      const statusChangeEvent = PaymentEventFactory.createEventForStatusChange(
+        updatedPayment,
+        existingPayment.status,
+        updates as Record<string, unknown>
+      );
+      if (statusChangeEvent) {
+        await this.eventBus.emit(statusChangeEvent);
+      }
+    } catch (error) {
+      console.error(`Failed to emit payment updated event for ${updatedPayment.id}:`, error);
     }
 
     return updatedPayment;
@@ -173,7 +199,23 @@ export class PaymentService {
       );
     }
 
-    return await this.persistence.delete(id);
+    const deleted = await this.persistence.delete(id);
+    
+    // Emit payment deleted event
+    if (deleted) {
+      try {
+        const deletedEvent = PaymentEventFactory.createPaymentDeletedEvent(
+          payment.id,
+          payment.customerId,
+          payment.merchantId
+        );
+        await this.eventBus.emit(deletedEvent);
+      } catch (error) {
+        console.error(`Failed to emit payment deleted event for ${payment.id}:`, error);
+      }
+    }
+
+    return deleted;
   }
 
   private async validatePaymentRequest(request: PaymentRequest): Promise<void> {
@@ -226,6 +268,8 @@ export class PaymentService {
   }
 
   private async processPaymentAsync(paymentId: string): Promise<void> {
+    const processingStartTime = Date.now();
+    
     try {
       // update status to processing
       await this.updatePayment(paymentId, { status: PaymentStatus.PROCESSING });
@@ -238,10 +282,13 @@ export class PaymentService {
       // simulate processing logic
       const success = await this.simulatePaymentProcessing(payment);
       
+      const processingTime = Date.now() - processingStartTime;
+      
       if (success) {
+        const transactionId = `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         await this.updatePayment(paymentId, { 
           status: PaymentStatus.COMPLETED,
-          transactionId: `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          transactionId
         });
       } else {
         await this.updatePayment(paymentId, { 
