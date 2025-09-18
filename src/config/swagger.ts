@@ -8,8 +8,8 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'A comprehensive Node.js microservice for payment processing simulation with robust error handling, validation, and asynchronous processing.',
       contact: {
-        name: 'Payment Microservice Developer',
-        email: 'developer@example.com'
+        name: 'Victor Awotidebe',
+        email: 'victorawotidebe@gmail.com'
       },
       license: {
         name: 'MIT',
